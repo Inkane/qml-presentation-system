@@ -55,10 +55,12 @@ Item {
     property color textColor: "black"
     property string fontFamily: "Helvetica"
     property string codeFontFamily: "Courier New"
+    property int currentBullet: 0 // my change
 
     // Private API
     property bool _faded: false
     property int _userNum;
+    property bool _pointing: false;
 
     Component.onCompleted: {
         var slideCount = 0;
@@ -87,6 +89,12 @@ Item {
     }
 
     function goToNextSlide() {
+        if (slides[currentSlide].content.length > root.currentBullet) {
+            root.currentBullet++;
+            return;
+        } else {
+            root.currentBullet = 0;
+        }
         root._userNum = 0
         if (_faded)
             return
@@ -101,6 +109,12 @@ Item {
     }
 
     function goToPreviousSlide() {
+        if (root.currentBullet > 0) {
+            root.currentBullet--;
+            return;
+        } else {
+            root.currentBullet = slides[currentSlide].content.length;
+        }
         root._userNum = 0
         if (root._faded)
             return
@@ -112,6 +126,7 @@ Item {
                root.focus = true;
            }
         }
+	root.currentBullet = slides[currentSlide].content.length;
     }
 
     function goToUserSlide() {
@@ -126,6 +141,7 @@ Item {
            if (switchSlides(from, to, _userNum > currentSlide)) {
                 currentSlide = _userNum;
                root.focus = true;
+        root.currentBullet = to.content.length
            }
         }
     }
@@ -141,6 +157,10 @@ Item {
     Keys.onPressed: {
         if (event.key >= Qt.Key_0 && event.key <= Qt.Key_9)
             _userNum = 10 * _userNum + (event.key - Qt.Key_0)
+        else if (event.key == Qt.Key_P) {
+            root._pointing = !root._pointing;
+            console.log(""+ root._pointing);
+        }
         else {
             if (event.key == Qt.Key_Return || event.key == Qt.Key_Enter)
                 goToUserSlide();
@@ -163,6 +183,7 @@ Item {
     MouseArea {
         id: mouseArea
         anchors.fill: parent
+        cursorShape: root._pointing ? Qt.ArrowCursor: Qt.BlankCursor
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onClicked: {
             if (mouse.button == Qt.RightButton)

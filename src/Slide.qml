@@ -66,6 +66,7 @@ Item {
     property real bulletSpacing: 1
 
     property real contentWidth: width
+    property variant textFormat: Text.PlainText
 
     // Define the slide to be the "content area"
     x: parent.width * 0.05
@@ -79,6 +80,9 @@ Item {
     property color titleColor: parent.titleColor;
     property color textColor: parent.textColor;
     property string fontFamily: parent.fontFamily;
+
+    property int currentBullet: parent.currentBullet
+    property bool numbered: false
 
     visible: false
 
@@ -141,6 +145,9 @@ Item {
 
             Row {
                 id: row
+                visible: index < slide.currentBullet
+                opacity: visible ? 1 : 0
+                Behavior on opacity { NumberAnimation {duration: 400} }
 
                 function decideIndentLevel(s) { return s.charAt(0) == " " ? 1 + decideIndentLevel(s.substring(1)) : 0 }
                 property int indentLevel: decideIndentLevel(content[index])
@@ -159,6 +166,21 @@ Item {
                     radius: width / 2
                     smooth: true
                     opacity: text.text.length == 0 ? 0 : 1
+                    visible: !slide.numbered
+                }
+
+                Rectangle {
+                    id: number
+                    y: text.y
+                    width: baseFontSize
+                    height: baseFontSize
+                    smooth: true
+                    visible: slide.numbered
+                    Text {
+                         text: "" + (index + 1) + ". "
+                         font.pixelSize: baseFontSize * row.indentFactor
+                         color: slide.textColor
+                    }
                 }
 
                 Rectangle {
@@ -173,7 +195,7 @@ Item {
                     width: slide.contentWidth - parent.x - dot.width - space.width
                     font.pixelSize: baseFontSize * row.indentFactor
                     text: content[index]
-                    textFormat: Text.PlainText
+                    textFormat: slide.textFormat
                     wrapMode: Text.WordWrap
                     color: slide.textColor
                     horizontalAlignment: Text.AlignLeft
